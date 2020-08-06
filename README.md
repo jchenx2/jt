@@ -1,4 +1,4 @@
-## Start
+## START
 
 1. git clone https://github.com/jchenx2/jt.git
 2. cd jt
