@@ -1,4 +1,14 @@
-## 定义
+## Start
+
+1. git clone https://github.com/jchenx2/jt.git
+2. cd jt
+3. create databse "jt_fiction"
+4. click init.bat to init tables
+5. npm install
+6. npm run build
+7. npm run dev
+
+## TABLES DEFINE
 
 1. jt_account_log 账户变动记录表
 2. jt_admin 管理员表
@@ -24,12 +34,9 @@
 22. jt_user_goods 用户对应商品表
 23. jt_wechat_user_temporary 用户注册临时表
 
-## 问题
+## QUESTION
 
-1.  登录数据库的客户端跟 mysql8.0 不兼容，mysql8.0 密码认证采用了新的密码格式
-    UnhandledPromiseRejectionWarning: Error: ER_NOT_SUPPORTED_AUTH_MODE: Client does not support authentication protocol requested by server; consider upgrading MySQL client
+1.  Error: ER_NOT_SUPPORTED_AUTH_MODE: Client does not support authentication protocol requested by server; consider upgrading MySQL client
 
-    解决方案：
-    在系统 mysql 终端输入以下命令
-    //password 是你的数据库账户密码，root 和 host 也是
+    Solution:
     ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
