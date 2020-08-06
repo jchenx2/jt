@@ -2,7 +2,7 @@
 
 1. git clone https://github.com/jchenx2/jt.git
 2. cd jt
-3. create databse "jt_fiction"
+3. create database "jt_fiction"
 4. click init.bat to init tables
 5. npm install
 6. npm run build
