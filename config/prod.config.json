@@ -1,0 +1,17 @@
+{
+	"sql": {
+		"host": "39.97.243.226",
+		"user": "root",
+		"password": "123456",
+		"database": "jt_fiction"
+	},
+	"endpoint": {
+		"baseURL": "http://www.01kanshu.com/Interface/CommonApi",
+		"channel": "test"
+	},
+	"http": {
+		"port": 443,
+		"key": "",
+		"cert": ""
+	}
+}
