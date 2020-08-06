@@ -109,8 +109,6 @@ export default class BookInfo {
 
 	async insert() {
 		const sql = `INSERT INTO \`jt_fiction\` VALUES (0, ${this.type_id}, "${this.cover_img}", "${this.author}", ${this.see_num}, ${this.score}, "${this.name}", "${this.words_num}", "${this.introduction}", ${this.currency_income_num}, "${this.is_end}", "${this.is_home}", ${this.free_chapter_num}, ${this.chapter_price}, "${this.state}", ${this.created_time}, "${this.updated_time}", ${this.channels})`;
-
-		console.log(sql);
 		return SqlClient.getInstance().query(sql);
 	}
 }

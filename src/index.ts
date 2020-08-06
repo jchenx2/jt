@@ -55,22 +55,3 @@ app.use((err: any, req: any, res: any, next: any) => {
 		logger.e(e);
 	}
 })();
-
-async function testSql1() {
-	try {
-		const sql = `INSERT INTO \`jt_fiction\` VALUES (0, 15, 'https://xiaoshuo.huapiaoliang.com/jt-api/public/uploads/2020-08-02/aB3pqAFyWLuChtXzM5er7MwZ0r0MsxUMYpdpqIJt.jpeg', '阿迷', 0, 5.00, 'hhhhhh', '10万', '【此中滋味，甘苦共尝。】你尝过被生活打压的滋味吗？\n\n他们都是普通人，却又不普通。精神上都有缺陷的两个人相遇，在一次又一次地放弃与被放弃中，拉紧对方的手，他们互相救赎，他们是彼此的光。\n\n脑子不好顾清欢×狂野男孩俞彬子\n人前高冷人后易傻乐疯狂宠溺攻×人前狂野人后也狂野撩人不自知受\n\n生活流水账，现实风治愈向，1v1，攻追受，he。\n\n甜甜甜甜甜甜甜甜白月光与初恋没有狗血雷点！俩智障儿童互相救赎后的咕噜咕噜爱情故事！', 0, '0', '0', 100, 35, '1', '2020-08-02 09:40:56', NULL, 2)`;
-		await SqlClient.getInstance().query(sql);
-	} catch (e) {
-		console.log(e);
-	}
-}
-
-async function testSql2() {
-	try {
-		const sql = "select * from jt_fiction";
-		const result = await SqlClient.getInstance().query(sql);
-		console.log(result);
-	} catch (e) {
-		console.log(e);
-	}
-}
