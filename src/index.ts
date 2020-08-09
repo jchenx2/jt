@@ -4,7 +4,6 @@ import compression from "compression";
 
 import HttpServer from "./http-server";
 
-import scan from "./route/scan";
 import query from "./route/query";
 import download from "./route/download";
 
@@ -31,7 +30,6 @@ app.use(compression()); // gzip
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use("/scan", scan);
 app.use("/query", query);
 app.use("/download", download);
 

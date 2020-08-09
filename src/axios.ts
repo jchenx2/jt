@@ -18,7 +18,7 @@ export default class Axios {
 
 	constructor() {
 		axios.defaults.baseURL = this.config.baseURL;
-		axios.defaults.timeout = 5000;
+		axios.defaults.timeout = 30000;
 		axios.interceptors.response.use(
 			(response) => {
 				if (response.status !== 200) {
@@ -72,7 +72,6 @@ export default class Axios {
 				channel: this.config.channel,
 				bookid,
 			},
-			timeout: 10000,
 		});
 	}
 

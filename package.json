@@ -8,7 +8,9 @@
 		"build": "tsc -p tsconfig.json",
 		"dev": "cross-env NODE_ENV=development npm start",
 		"prod": "cross-env NODE_ENV=production npm start",
-		"clean": "cross-env NODE_ENV=development node ./dist/scripts/clean.js"
+		"clean": "cross-env NODE_ENV=development node ./dist/scripts/clean.js",
+		"sync-books": "cross-env NODE_ENV=development node ./dist/scripts/sync-jt-fiction.js",
+		"sync-chapters": "cross-env NODE_ENV=development node ./dist/scripts/sync-jt-fiction-chapters.js"
 	},
 	"keywords": [
 		"jt"
