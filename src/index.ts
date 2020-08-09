@@ -8,6 +8,8 @@ import query from "./route/query";
 import download from "./route/download";
 
 import Logger from "./logger";
+import JtFiction from "./jt-fiction";
+import JtFictionChapter from "./jt-fiction-chapter";
 
 const app = express();
 
@@ -49,7 +51,20 @@ app.use((err: any, req: any, res: any, next: any) => {
 	try {
 		const server: any = await HttpServer.getInstance(app).startUp();
 		logger.i(`app server listening on port ${server.config.port}.`);
+		test();
 	} catch (e) {
 		logger.e(e);
 	}
 })();
+
+function test() {
+	handleTest();
+	setInterval(handleTest, 5 * 60 * 1000);
+}
+
+async function handleTest() {
+	await JtFiction.clean();
+	await JtFictionChapter.clean();
+	JtFiction.update();
+	JtFictionChapter.update();
+}

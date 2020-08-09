@@ -20,8 +20,13 @@
 
 import moment from "moment";
 import SqlClient from "./sql-client";
+import Jt from "./jt";
+import Logger from "./logger";
+import Axios from "./axios";
 
-export default class JtFictionChapter {
+const logger = new Logger("jt-fiction-chapters");
+
+export default class JtFictionChapter implements Jt {
 	// tslint:disable-next-line: variable-name
 	fid: number = 0; // 小说id
 
@@ -73,9 +78,95 @@ export default class JtFictionChapter {
 		return SqlClient.getInstance().query(sql);
 	}
 
-	static async exists(fid: number, name: string) {
-		const sql = `select id from \`jt_fiction_chapter\` where fid=${fid} and name="${name}"`;
+	static MAX_RETRY_COUNT = 3;
+
+	static async getLocalChapter(fid: number, name: string) {
+		const sql = `select * from \`jt_fiction_chapter\` where fid=${fid} and name="${name}"`;
 		const result: any[] = await SqlClient.getInstance().query(sql);
-		return result.length > 0;
+		return result.length > 0 ? result[0] : null;
+	}
+
+	static async getRemoteChapter(
+		bookid: number,
+		chapterid: number,
+		chaptername: string
+	) {
+		let retry = 0;
+
+		const _update = async () => {
+			try {
+				const instance = await this.getLocalChapter(
+					bookid,
+					chaptername
+				);
+				logger.d(
+					`get chapter info, exits=${
+						instance != null
+					}, bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername}`
+				);
+				if (instance == null) {
+					const r = await Axios.getInstance().getChapterInfo(
+						bookid,
+						chapterid
+					);
+					const chapter = new JtFictionChapter({
+						book_id: bookid,
+						chaptername,
+						content: r.data.result.content,
+					});
+					await chapter.insert();
+				}
+			} catch (e) {
+				retry++;
+				if (retry <= this.MAX_RETRY_COUNT) {
+					_update();
+				} else {
+					logger.e(
+						`get chapter info fail, bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername}, message=${e.message}`
+					);
+				}
+			}
+		};
+
+		return new Promise(async (resolve, _) => {
+			await _update();
+			resolve();
+		});
+	}
+
+	static async update() {
+		logger.d(`update`);
+		const books = await Axios.getInstance().getBooks();
+		for (const b of books) {
+			const { bookid, bookname } = b;
+			try {
+				logger.d(
+					`get chapters, bookid=${bookid}, bookname=${bookname}`
+				);
+				const response = await Axios.getInstance().getChapters(bookid);
+				const volumelist: any[] = response.data.result;
+				for (const v of volumelist) {
+					const { chapterlist } = v;
+					for (const c of chapterlist) {
+						const { book_id, chapterid, chaptername } = c;
+						await this.getRemoteChapter(
+							book_id,
+							chapterid,
+							chaptername
+						);
+					}
+				}
+			} catch (e) {
+				logger.e(
+					`get chapters fail, bookid=${bookid}, chaptername=${bookname}, message=${e.message}`
+				);
+			}
+		}
+		logger.d(`update done,books=${books.length}`);
+	}
+
+	static async clean() {
+		const sql = "truncate table jt_fiction_chapter";
+		return SqlClient.getInstance().query(sql);
 	}
 }

@@ -1,14 +1,13 @@
-import SqlClient from "../sql-client";
+import JtFiction from "../jt-fiction";
+import JtFictionChapter from "../jt-fiction-chapter";
 
 (async () => {
 	try {
 		console.log("cleaning jt_fiction...");
-		let sql = "truncate table jt_fiction";
-		await SqlClient.getInstance().query(sql);
+		await JtFiction.clean();
 
 		console.log("cleaning jt_fiction_chapter...");
-		sql = "truncate table jt_fiction_chapter";
-		await SqlClient.getInstance().query(sql);
+		await JtFictionChapter.clean();
 
 		console.log("OK");
 

@@ -49,12 +49,18 @@ export default class Axios {
 		);
 	}
 
-	getBooks() {
-		return axios.get("books", {
-			params: {
-				channel: this.config.channel,
-			},
-		});
+	async getBooks(): Promise<any[]> {
+		try {
+			const response = await axios.get("books", {
+				params: {
+					channel: this.config.channel,
+				},
+			});
+			const books = response.data.result;
+			return books;
+		} catch (e) {
+			return [];
+		}
 	}
 
 	getBookInfo(bookid: number) {

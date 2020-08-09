@@ -49,10 +49,18 @@
 // };
 
 import moment from "moment";
+import fs from "fs";
+import path from "path";
 
 import SqlClient from "./sql-client";
+import Jt from "./jt";
+import Logger from "./logger";
+import Axios from "./axios";
+import AppConfig from "./app-config";
 
-export default class JtFiction {
+const logger = new Logger("jt-fiction");
+
+export default class JtFiction implements Jt {
 	// tslint:disable-next-line: variable-name
 	type_id: number; // 分类id
 
@@ -101,10 +109,10 @@ export default class JtFiction {
 	constructor(bookinfo: any, volumelist: any[], bookpic: string) {
 		const time = moment().format();
 
-		this.type_id = getTypeId(bookinfo.bookType);
+		this.type_id = this.getTypeId(bookinfo.bookType);
 		this.cover_img = bookpic;
 		this.author = bookinfo.authorname;
-		this.see_num = getSeeNum(volumelist);
+		this.see_num = this.getSeeNum(volumelist);
 		this.name = bookinfo.bookname;
 		this.words_num = bookinfo.words;
 		this.introduction = bookinfo.intro;
@@ -113,7 +121,7 @@ export default class JtFiction {
 		this.created_time = time;
 		this.updated_time = time;
 		this.channels = bookinfo.gender;
-		this.free_chapter_num = getFreeChapterNum(volumelist);
+		this.free_chapter_num = this.getFreeChapterNum(volumelist);
 	}
 
 	async getId() {
@@ -166,72 +174,153 @@ export default class JtFiction {
 		return SqlClient.getInstance().query(sql);
 	}
 
-	static async getBookByName(name: string) {
+	getTypeId(type: string): number {
+		let id: number = 0;
+		switch (type) {
+			case "现代言情":
+				id = 1;
+				break;
+			case "古代言情":
+				id = 2;
+				break;
+			case "都市婚姻":
+				id = 3;
+				break;
+			case "职场言情":
+				id = 4;
+				break;
+			case "男生都市":
+				id = 5;
+				break;
+			case "男生玄幻":
+				id = 6;
+				break;
+			case "女生短篇":
+				id = 7;
+				break;
+			case "男生游戏":
+				id = 18;
+				break;
+			case "男生历史":
+				id = 19;
+				break;
+			case "男生仙侠":
+				id = 20;
+				break;
+			case "男生悬疑":
+				id = 21;
+				break;
+			case "男生其他":
+				id = 22;
+				break;
+			default:
+				break;
+		}
+		return id;
+	}
+
+	getFreeChapterNum(volumelist: any[]): number {
+		let num = 0;
+		for (const volume of volumelist) {
+			const { chapterlist } = volume;
+			num += chapterlist.filter((b: any) => b.the_price === "0").length;
+		}
+		return num;
+	}
+
+	getSeeNum(volumelist: any[]): number {
+		let num = 0;
+		for (const volume of volumelist) {
+			const chapterlist: any[] = volume.chapterlist;
+			num += chapterlist.length;
+		}
+		return num;
+	}
+
+	static MAX_RETRY_COUNT = 3;
+
+	static async getLocalBook(name: string) {
 		const sql = `select * from \`jt_fiction\` where name="${name}"`;
 		const result: any[] = await SqlClient.getInstance().query(sql);
 		return result.length > 0 ? result[0] : null;
 	}
-}
 
-function getTypeId(type: string): number {
-	let id: number = 0;
-	switch (type) {
-		case "现代言情":
-			id = 1;
-			break;
-		case "古代言情":
-			id = 2;
-			break;
-		case "都市婚姻":
-			id = 3;
-			break;
-		case "职场言情":
-			id = 4;
-			break;
-		case "男生都市":
-			id = 5;
-			break;
-		case "男生玄幻":
-			id = 6;
-			break;
-		case "女生短篇":
-			id = 7;
-			break;
-		case "男生游戏":
-			id = 18;
-			break;
-		case "男生历史":
-			id = 19;
-			break;
-		case "男生仙侠":
-			id = 20;
-			break;
-		case "男生悬疑":
-			id = 21;
-			break;
-		case "男生其他":
-			id = 22;
-			break;
-		default:
-			break;
-	}
-	return id;
-}
+	static async getRemoteBook(bookid: number, bookname: string) {
+		let retry = 0;
 
-function getFreeChapterNum(volumelist: any[]): number {
-	let num = 0;
-	for (const volume of volumelist) {
-		const { chapterlist } = volume;
-		num += chapterlist.filter((b: any) => b.the_price === "0").length;
+		const _update = async () => {
+			try {
+				logger.d(
+					`get book info,retry=${retry}, bookid=${bookid}, bookname=${bookname}`
+				);
+				const instance = await this.getLocalBook(bookname);
+				if (instance == null || instance.state === 0) {
+					const [r1, r2] = await Promise.all([
+						Axios.getInstance().getBookInfo(bookid),
+						Axios.getInstance().getChapters(bookid),
+					]);
+					const { bookpic } = r1.data.result;
+					const newbookpic: string = await this.download(
+						bookpic,
+						bookid
+					);
+					const book = new JtFiction(
+						r1.data.result,
+						r2.data.result,
+						newbookpic
+					);
+					await book.insert();
+				}
+			} catch (e) {
+				retry++;
+				if (retry <= this.MAX_RETRY_COUNT) {
+					_update();
+				} else {
+					logger.e(
+						`get book info fail, bookid=${bookid}, bookname=${bookname}, message=${e.message}`
+					);
+				}
+			}
+		};
+		return new Promise(async (resolve, _) => {
+			await _update();
+			resolve();
+		});
 	}
-	return num;
-}
 
-function getSeeNum(volumelist: any[]): number {
-	let num = 0;
-	for (const volume of volumelist) {
-		const chapterlist: any[] = volume.chapterlist;
-		num += chapterlist.length;
+	static async update() {
+		logger.d(`update`);
+		const books = await Axios.getInstance().getBooks();
+		for (const b of books) {
+			const { bookid, bookname } = b;
+			await this.getRemoteBook(bookid, bookname);
+		}
+		logger.d(`update done,books=${books.length}`);
 	}
-	return num;
+
+	static async clean() {
+		const sql = "truncate table jt_fiction";
+		return SqlClient.getInstance().query(sql);
+	}
+
+	static async download(url: string, id: number): Promise<string> {
+		const { host, port } = AppConfig.getInstance().httpConfig;
+		const downloadFolder = path.resolve(".", "download");
+		if (!fs.existsSync(downloadFolder)) {
+			fs.mkdirSync(downloadFolder);
+		}
+		const filename = `${id}_${path.basename(url)}`;
+		const filepath = `${downloadFolder}/${filename}`;
+		const bookpic = `${host}:${port}/download/${filename}`;
+		if (fs.existsSync(filepath)) {
+			return bookpic;
+		}
+		const writer = fs.createWriteStream(filepath);
+		const response = await Axios.axios.get(url, { responseType: "stream" });
+		response.data.pipe(writer);
+		return new Promise((resolve, reject) => {
+			writer.on("finish", () => resolve(bookpic));
+			writer.on("error", reject);
+		});
+	}
 }
