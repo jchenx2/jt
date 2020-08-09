@@ -5,8 +5,8 @@
 3. create database "jt_fiction"
 4. click init.bat to init tables
 5. npm install
-6. npm run build
-7. npm run dev
+6. npm run dev-sync-books
+7. npm run dev-sync-chapters
 
 ## TABLES DEFINE
 
@@ -16,7 +16,7 @@
 4. jt_card_config 年卡季卡月卡配置表
 5. jt_comment 小说评论表
 6. jt_fiction 小说基本信息表
-7 .jt_fiction_chapter 小说章节表
+7. jt_fiction_chapter 小说章节表
 8. jt_fiction_type 小说分类表
 9. jt_give_log 赠送记录表
 10. jt_menu 权限菜单表
