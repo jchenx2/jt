@@ -23,6 +23,7 @@ interface EndpointConfig {
 }
 
 interface HttpConfig {
+	host: string;
 	port: number;
 	key: string;
 	cert: string;

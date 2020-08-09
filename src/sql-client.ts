@@ -1,5 +1,5 @@
 import mysql from "mysql";
-import AppConfig from "./appConfig";
+import AppConfig from "./app-config";
 
 export default class SqlClient {
 	private static instance: SqlClient;
@@ -32,12 +32,12 @@ export default class SqlClient {
 					reject(e);
 				} else {
 					conn.query(sql, (err, result) => {
+						conn.release();
 						if (err) {
 							reject(err);
 						} else {
 							resolve(result);
 						}
-						conn.release();
 					});
 				}
 			});

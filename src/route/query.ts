@@ -1,5 +1,5 @@
 import express from "express";
-import SqlClient from "../sqlClient";
+import SqlClient from "../sql-client";
 
 const router = express.Router();
 

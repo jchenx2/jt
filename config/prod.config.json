@@ -10,6 +10,7 @@
 		"channel": "test"
 	},
 	"http": {
+		"host": "https://39.97.243.226",
 		"port": 443,
 		"key": "",
 		"cert": ""

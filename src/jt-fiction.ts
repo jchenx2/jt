@@ -24,6 +24,11 @@
 //   PRIMARY KEY (`id`) USING BTREE
 // ) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '小说信息表' ROW_FORMAT = Dynamic;
 
+// -- ----------------------------
+// -- Records of jt_fiction
+// -- ----------------------------
+// INSERT INTO `jt_fiction` VALUES (13, 16, 'https://xiaoshuo.huapiaoliang.com/jt-api/public/uploads/2020-07-17/h9Vtl8nbkqlLkxG4UxnUtrZnm9fZfEFckzjfdpPS.jpeg', '贝昕', 0, 5.00, '《掌中之物》', '35.5万字', '一个心狠手辣的男人，一个不屈不挠的灵魂，以及一段处处是错的纠缠⋯⋯\n前，她送他进监牢，直至确定他被执行死刑，方才安心。\n后，他扯她入地狱，亲眼看着她被侮辱伤害，却仍不解恨。这是一场精心准备的报复，也是一场隐忍持久的复仇。\n傅慎行原本一直以为，何妍会是他的掌中之物的。\n简单一句话：前期男主虐女主成渣，后期女主虐男主成灰⋯⋯\n没错，就是这么简单。看前面，别幻想男主心慈手软，看后面，也别指望女主善罢甘休。', 0, '1', '1', -1, 0, '1', '2020-07-17 18:45:52', NULL, 2);
+
 // const book = {
 // 	bookid: "1135",
 // 	bookname: "坑爹儿子影后妈咪",
@@ -43,9 +48,11 @@
 // 	gender: "2",
 // };
 
-import SqlClient from "../sqlClient";
+import moment from "moment";
 
-export default class BookInfo {
+import SqlClient from "./sql-client";
+
+export default class JtFiction {
 	// tslint:disable-next-line: variable-name
 	type_id: number; // 分类id
 
@@ -70,7 +77,7 @@ export default class BookInfo {
 	currency_income_num: number = 0; // 阅读币收入总数
 
 	// tslint:disable-next-line: variable-name
-	is_end: string; // 是否已完结
+	is_end: string = "0"; // 是否已完结
 
 	// tslint:disable-next-line: variable-name
 	is_home: string = "0"; // 是否主页推荐
@@ -91,25 +98,78 @@ export default class BookInfo {
 
 	channels: number; // 频道：男频，女频
 
-	constructor(bookinfo: any, volumelist: any[]) {
+	constructor(bookinfo: any, volumelist: any[], bookpic: string) {
+		const time = moment().format();
+
 		this.type_id = getTypeId(bookinfo.bookType);
-		this.cover_img = bookinfo.bookpic;
+		this.cover_img = bookpic;
 		this.author = bookinfo.authorname;
+		this.see_num = getSeeNum(volumelist);
 		this.name = bookinfo.bookname;
 		this.words_num = bookinfo.words;
 		this.introduction = bookinfo.intro;
 		this.is_end = bookinfo.state;
 		this.state = bookinfo.state;
-		this.created_time = "NULL";
-		this.updated_time = bookinfo.updateTime;
+		this.created_time = time;
+		this.updated_time = time;
 		this.channels = bookinfo.gender;
-
 		this.free_chapter_num = getFreeChapterNum(volumelist);
 	}
 
+	async getId() {
+		const sql = `select id from \`jt_fiction\` where name="${this.name}"`;
+		const result: any[] = await SqlClient.getInstance().query(sql);
+		let id = 0;
+		if (result.length > 0) {
+			id = result[0].id;
+		}
+		return id;
+	}
+
 	async insert() {
-		const sql = `INSERT INTO \`jt_fiction\` VALUES (0, ${this.type_id}, "${this.cover_img}", "${this.author}", ${this.see_num}, ${this.score}, "${this.name}", "${this.words_num}", "${this.introduction}", ${this.currency_income_num}, "${this.is_end}", "${this.is_home}", ${this.free_chapter_num}, ${this.chapter_price}, "${this.state}", ${this.created_time}, "${this.updated_time}", ${this.channels})`;
+		const id = await this.getId();
+		const sql = `INSERT INTO \`jt_fiction\` VALUES (
+			${id},
+			${this.type_id},
+			"${this.cover_img}",
+			"${this.author}",
+			${this.see_num},
+			${this.score},
+			"${this.name}",
+			"${this.words_num}",
+			"${this.introduction}",
+			${this.currency_income_num},
+			"${this.is_end}",
+			"${this.is_home}",
+			${this.free_chapter_num},
+			${this.chapter_price},
+			"${this.state}",
+			"${this.created_time}",
+			"${this.updated_time}",
+			${this.channels})
+			ON DUPLICATE KEY UPDATE
+			type_id=${this.type_id},
+			cover_img="${this.cover_img}",
+			author="${this.author}",
+			see_num=${this.see_num},
+			score=${this.score},
+			words_num="${this.words_num}",
+			introduction="${this.introduction}",
+			currency_income_num=${this.currency_income_num},
+			is_end="${this.is_end}",
+			is_home="${this.is_home}",
+			free_chapter_num=${this.free_chapter_num},
+			chapter_price=${this.chapter_price},
+			state="${this.state}",
+			updated_time="${moment().format()}",
+			channels=${this.channels}`;
 		return SqlClient.getInstance().query(sql);
+	}
+
+	static async getBookByName(name: string) {
+		const sql = `select * from \`jt_fiction\` where name="${name}"`;
+		const result: any[] = await SqlClient.getInstance().query(sql);
+		return result.length > 0 ? result[0] : null;
 	}
 }
 
@@ -163,6 +223,15 @@ function getFreeChapterNum(volumelist: any[]): number {
 	for (const volume of volumelist) {
 		const { chapterlist } = volume;
 		num += chapterlist.filter((b: any) => b.the_price === "0").length;
+	}
+	return num;
+}
+
+function getSeeNum(volumelist: any[]): number {
+	let num = 0;
+	for (const volume of volumelist) {
+		const chapterlist: any[] = volume.chapterlist;
+		num += chapterlist.length;
 	}
 	return num;
 }

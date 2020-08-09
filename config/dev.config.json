@@ -10,6 +10,7 @@
 		"channel": "test"
 	},
 	"http": {
+		"host": "http://localhost",
 		"port": 3000
 	}
 }

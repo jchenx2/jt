@@ -7,7 +7,8 @@
 		"start": "node ./dist/index.js",
 		"build": "tsc -p tsconfig.json",
 		"dev": "cross-env NODE_ENV=development npm start",
-		"prod": "cross-env NODE_ENV=production npm start"
+		"prod": "cross-env NODE_ENV=production npm start",
+		"clean": "cross-env NODE_ENV=development node ./dist/scripts/clean.js"
 	},
 	"keywords": [
 		"jt"
@@ -19,6 +20,7 @@
 		"compression": "^1.7.4",
 		"express": "^4.17.1",
 		"log4js": "^6.3.0",
+		"moment": "^2.27.0",
 		"mysql": "^2.18.1"
 	},
 	"devDependencies": {

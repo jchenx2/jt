@@ -1,6 +1,6 @@
-import axios from "axios";
-import AppConfig from "./appConfig";
-import Logger from "./logger";
+import axios, { AxiosInstance } from "axios";
+
+import AppConfig from "./app-config";
 
 export default class Axios {
 	private static instance: Axios;
@@ -11,6 +11,8 @@ export default class Axios {
 		}
 		return this.instance;
 	}
+
+	static axios: AxiosInstance = axios;
 
 	private config: EndpointConfig = AppConfig.getInstance().epConfig;
 
@@ -26,12 +28,18 @@ export default class Axios {
 						)
 					);
 				} else {
-					if (response.data.code === 0) {
-						return response;
+					if (response.data.code !== undefined) {
+						if (response.data.code === 0) {
+							return response;
+						} else {
+							return Promise.reject(
+								new Error(
+									JSON.stringify(response.data, null, 2)
+								)
+							);
+						}
 					} else {
-						return Promise.reject(
-							new Error(JSON.stringify(response.data, null, 2))
-						);
+						return response;
 					}
 				}
 			},

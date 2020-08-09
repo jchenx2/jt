@@ -3,7 +3,7 @@ import https from "https";
 import fs from "fs";
 
 import * as core from "express-serve-static-core";
-import AppConfig from "./appConfig";
+import AppConfig from "./app-config";
 
 export default class HttpServer {
 	private static instance: HttpServer;
@@ -37,7 +37,7 @@ export default class HttpServer {
 
 	startUp() {
 		return new Promise((reslove, _) => {
-			this.server.listen(this.config.port, reslove);
+			this.server.listen(this.config.port, () => reslove(this));
 		});
 	}
 }

@@ -2,11 +2,11 @@ import express from "express";
 import bodyParser from "body-parser";
 import compression from "compression";
 
-import SqlClient from "./sqlClient";
-import HttpServer from "./httpServer";
+import HttpServer from "./http-server";
 
 import scan from "./route/scan";
 import query from "./route/query";
+import download from "./route/download";
 
 import Logger from "./logger";
 
@@ -31,8 +31,9 @@ app.use(compression()); // gzip
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use("/query", query);
 app.use("/scan", scan);
+app.use("/query", query);
+app.use("/download", download);
 
 app.use((req, res, next) => {
 	const err = new Error("Not Found");
@@ -48,9 +49,8 @@ app.use((err: any, req: any, res: any, next: any) => {
 
 (async () => {
 	try {
-		const httpServer = HttpServer.getInstance(app);
-		await httpServer.startUp();
-		logger.i(`app server listening on port ${httpServer.config.port}.`);
+		const server: any = await HttpServer.getInstance(app).startUp();
+		logger.i(`app server listening on port ${server.config.port}.`);
 	} catch (e) {
 		logger.e(e);
 	}
