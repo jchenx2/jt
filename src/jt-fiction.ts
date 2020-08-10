@@ -48,7 +48,6 @@
 // 	gender: "2",
 // };
 
-import moment from "moment";
 import fs from "fs";
 import path from "path";
 
@@ -57,6 +56,7 @@ import Jt from "./jt";
 import Logger from "./logger";
 import Axios from "./axios";
 import AppConfig from "./app-config";
+import DateFormat from "./date-format";
 
 const logger = new Logger("jt-fiction");
 
@@ -107,7 +107,7 @@ export default class JtFiction implements Jt {
 	channels: number; // 频道：男频，女频
 
 	constructor(bookinfo: any, volumelist: any[], bookpic: string) {
-		const time = moment().format();
+		const time = new DateFormat(new Date()).format();
 
 		this.type_id = this.getTypeId(bookinfo.bookType);
 		this.cover_img = bookpic;
@@ -169,8 +169,9 @@ export default class JtFiction implements Jt {
 			free_chapter_num=${this.free_chapter_num},
 			chapter_price=${this.chapter_price},
 			state="${this.state}",
-			updated_time="${moment().format()}",
+			updated_time="${new DateFormat(new Date()).format()}",
 			channels=${this.channels}`;
+		logger.d(sql);
 		return SqlClient.getInstance().query(sql);
 	}
 
