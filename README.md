@@ -5,8 +5,12 @@
 3. create database "jt_fiction"
 4. click init.bat to init tables
 5. npm install
-6. npm run dev-sync-books
-7. npm run dev-sync-chapters
+6. npm install typescript -g
+
+## RUN
+1. npm run dev
+2. npm run dev-sync-books
+3. npm run dev-sync-chapters
 
 ## TABLES DEFINE
 
