@@ -47,6 +47,7 @@ export default class JtFictionChapter implements Jt {
 		this.fid = data.book_id;
 		this.name = data.chaptername;
 		this.content = data.content;
+		this.sort = data.sort;
 		this.created_time = time;
 		this.updated_time = time;
 	}
@@ -89,7 +90,8 @@ export default class JtFictionChapter implements Jt {
 	static async getRemoteChapter(
 		bookid: number,
 		chapterid: number,
-		chaptername: string
+		chaptername: string,
+		sort: number
 	) {
 		let retry = 0;
 
@@ -113,6 +115,7 @@ export default class JtFictionChapter implements Jt {
 						book_id: bookid,
 						chaptername,
 						content: r.data.result.content,
+						sort,
 					});
 					await chapter.insert();
 				}
@@ -147,12 +150,15 @@ export default class JtFictionChapter implements Jt {
 				const volumelist: any[] = response.data.result;
 				for (const v of volumelist) {
 					const { chapterlist } = v;
+					let sort = 0;
 					for (const c of chapterlist) {
+						sort++;
 						const { book_id, chapterid, chaptername } = c;
 						await this.getRemoteChapter(
 							book_id,
 							chapterid,
-							chaptername
+							chaptername,
+							sort
 						);
 					}
 				}

@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import compression from "compression";
+import schedule from "node-schedule";
 
 import HttpServer from "./http-server";
 
@@ -51,18 +52,13 @@ app.use((err: any, req: any, res: any, next: any) => {
 	try {
 		const server: any = await HttpServer.getInstance(app).startUp();
 		logger.i(`app server listening on port ${server.config.port}.`);
-		test();
+		schedule.scheduleJob({ hour: 17, minute: 26 }, task); // 20:00:00 every day
 	} catch (e) {
 		logger.e(e);
 	}
 })();
 
-function test() {
-	handleTest();
-	setInterval(handleTest, 5 * 60 * 1000);
-}
-
-async function handleTest() {
+async function task() {
 	await JtFiction.clean();
 	await JtFictionChapter.clean();
 	JtFiction.update();
