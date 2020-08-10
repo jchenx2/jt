@@ -148,9 +148,9 @@ export default class JtFictionChapter implements Jt {
 				);
 				const response = await Axios.getInstance().getChapters(bookid);
 				const volumelist: any[] = response.data.result;
+				let sort = 0;
 				for (const v of volumelist) {
 					const { chapterlist } = v;
-					let sort = 0;
 					for (const c of chapterlist) {
 						sort++;
 						const { book_id, chapterid, chaptername } = c;

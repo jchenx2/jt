@@ -14,5 +14,9 @@
 		"port": 443,
 		"key": "",
 		"cert": ""
+	},
+	"schedule": {
+		"hour": 20,
+		"minute": 0
 	}
 }

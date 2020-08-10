@@ -12,5 +12,9 @@
 	"http": {
 		"host": "http://localhost",
 		"port": 3000
+	},
+	"schedule": {
+		"hour": 20,
+		"minute": 9
 	}
 }

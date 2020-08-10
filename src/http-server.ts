@@ -17,21 +17,28 @@ export default class HttpServer {
 
 	private server: http.Server;
 
-	config: HttpConfig = AppConfig.getInstance().httpConfig;
+	config: HttpConfig = AppConfig.getInstance().http;
 
 	constructor(app: core.Express) {
 		if (AppConfig.getInstance().debug) {
 			this.server = http.createServer(app);
 		} else {
-			const key = fs.readFileSync(this.config.key);
-			const cert = fs.readFileSync(this.config.cert);
-			this.server = https.createServer(
-				{
-					key,
-					cert,
-				},
-				app
-			);
+			if (
+				fs.existsSync(this.config.key) &&
+				fs.existsSync(this.config.cert)
+			) {
+				const key = fs.readFileSync(this.config.key);
+				const cert = fs.readFileSync(this.config.cert);
+				this.server = https.createServer(
+					{
+						key,
+						cert,
+					},
+					app
+				);
+			} else {
+				this.server = http.createServer(app);
+			}
 		}
 	}
 

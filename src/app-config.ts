@@ -11,24 +11,28 @@ export default class AppConfig {
 		return this.instance;
 	}
 
-	epConfig: EndpointConfig;
+	endpoint: EndpointConfig;
 
-	sqlConfig: SqlConfig;
+	sql: SqlConfig;
 
-	httpConfig: HttpConfig;
+	http: HttpConfig;
+
+	schedule: ScheduleConfig;
 
 	debug: boolean;
 
 	constructor(env?: string) {
 		if (env === "production") {
-			this.epConfig = prod.endpoint;
-			this.sqlConfig = prod.sql;
-			this.httpConfig = prod.http;
+			this.endpoint = prod.endpoint;
+			this.sql = prod.sql;
+			this.http = prod.http;
+			this.schedule = prod.schedule;
 			this.debug = false;
 		} else {
-			this.epConfig = dev.endpoint;
-			this.sqlConfig = dev.sql;
-			this.httpConfig = dev.http;
+			this.endpoint = dev.endpoint;
+			this.sql = dev.sql;
+			this.http = dev.http;
+			this.schedule = dev.schedule;
 			this.debug = true;
 		}
 	}

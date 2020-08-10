@@ -4,10 +4,12 @@ declare module "*config.json" {
 		sql: SqlConfig;
 		endpoint: EndpointConfig;
 		http: HttpConfig;
+		schedule: ScheduleConfig;
 	}
 	export const sql: SqlConfig;
 	export const endpoint: EndpointConfig;
 	export const http: HttpConfig;
+	export const schedule: ScheduleConfig;
 }
 
 interface SqlConfig {
@@ -27,4 +29,9 @@ interface HttpConfig {
 	port: number;
 	key: string;
 	cert: string;
+}
+
+interface ScheduleConfig {
+	hour: number;
+	minute: number;
 }

@@ -11,6 +11,7 @@ import download from "./route/download";
 import Logger from "./logger";
 import JtFiction from "./jt-fiction";
 import JtFictionChapter from "./jt-fiction-chapter";
+import AppConfig from "./app-config";
 
 const app = express();
 
@@ -52,15 +53,18 @@ app.use((err: any, req: any, res: any, next: any) => {
 	try {
 		const server: any = await HttpServer.getInstance(app).startUp();
 		logger.i(`app server listening on port ${server.config.port}.`);
-		schedule.scheduleJob({ hour: 17, minute: 26 }, task); // 20:00:00 every day
+		const { hour, minute } = AppConfig.getInstance().schedule;
+		schedule.scheduleJob({ hour, minute }, task); // 20:00:00 every day
 	} catch (e) {
 		logger.e(e);
 	}
 })();
 
 async function task() {
-	await JtFiction.clean();
-	await JtFictionChapter.clean();
+	if (AppConfig.getInstance().debug) {
+		await JtFiction.clean();
+		await JtFictionChapter.clean();
+	}
 	JtFiction.update();
 	JtFictionChapter.update();
 }

@@ -305,7 +305,7 @@ export default class JtFiction implements Jt {
 	}
 
 	static async download(url: string, id: number): Promise<string> {
-		const { host, port } = AppConfig.getInstance().httpConfig;
+		const { host, port } = AppConfig.getInstance().http;
 		const downloadFolder = path.resolve(".", "download");
 		if (!fs.existsSync(downloadFolder)) {
 			fs.mkdirSync(downloadFolder);

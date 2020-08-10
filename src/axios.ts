@@ -14,7 +14,7 @@ export default class Axios {
 
 	static axios: AxiosInstance = axios;
 
-	private config: EndpointConfig = AppConfig.getInstance().epConfig;
+	private config: EndpointConfig = AppConfig.getInstance().endpoint;
 
 	constructor() {
 		axios.defaults.baseURL = this.config.baseURL;

@@ -11,7 +11,7 @@ export default class SqlClient {
 		return this.instance;
 	}
 
-	private config: SqlConfig = AppConfig.getInstance().sqlConfig;
+	private config: SqlConfig = AppConfig.getInstance().sql;
 
 	private pool: mysql.Pool;
 
