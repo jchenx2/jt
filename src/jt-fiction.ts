@@ -312,7 +312,7 @@ export default class JtFiction implements Jt {
 		}
 		const filename = `${id}_${path.basename(url)}`;
 		const filepath = `${downloadFolder}/${filename}`;
-		const bookpic = `${host}:${port}/download/${filename}`;
+		const bookpic = `${host}/download/${filename}`;
 		if (fs.existsSync(filepath)) {
 			return bookpic;
 		}
