@@ -65,6 +65,6 @@ async function task() {
 		await JtFiction.clean();
 		await JtFictionChapter.clean();
 	}
-	JtFiction.update();
-	JtFictionChapter.update();
+	await JtFiction.update();
+	await JtFictionChapter.update();
 }

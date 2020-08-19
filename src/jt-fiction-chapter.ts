@@ -42,18 +42,21 @@ export default class JtFictionChapter implements Jt {
 	// tslint:disable-next-line: variable-name
 	updated_time: string; // 更新时间
 
+	wid: number; // 抓包到的小说id
+
 	constructor(data: any) {
 		const time = new DateFormat(new Date()).format();
-		this.fid = data.book_id;
+		this.fid = data.fid;
 		this.name = data.chaptername;
 		this.content = data.content;
 		this.sort = data.sort;
 		this.created_time = time;
 		this.updated_time = time;
+		this.wid = data.bookid;
 	}
 
 	async getId() {
-		const sql = `select id from \`jt_fiction_chapter\` where fid=${this.fid} and name="${this.name}"`;
+		const sql = `select id from \`jt_fiction_chapter\` where wid=${this.wid} and name="${this.name}"`;
 		const result: any[] = await SqlClient.getInstance().query(sql);
 		let id = 0;
 		if (result.length > 0) {
@@ -71,11 +74,13 @@ export default class JtFictionChapter implements Jt {
 			"${this.content}",
             ${this.sort},
             "${this.created_time}",
-			"${this.updated_time}")
+			"${this.updated_time}",
+			${this.wid})
 			ON DUPLICATE KEY UPDATE
             content="${this.content}",
             sort=${this.sort},
-            updated_time="${new DateFormat(new Date()).format()}"`;
+			updated_time="${new DateFormat(new Date()).format()}",
+			wid=${this.wid}`;
 		return SqlClient.getInstance().query(sql);
 	}
 
@@ -111,11 +116,13 @@ export default class JtFictionChapter implements Jt {
 						bookid,
 						chapterid
 					);
+					const fid = await JtFictionChapter.getFId(bookid);
 					const chapter = new JtFictionChapter({
-						book_id: bookid,
+						bookid,
 						chaptername,
 						content: r.data.result.content,
 						sort,
+						fid,
 					});
 					await chapter.insert();
 				}
@@ -174,5 +181,15 @@ export default class JtFictionChapter implements Jt {
 	static async clean() {
 		const sql = "truncate table jt_fiction_chapter";
 		return SqlClient.getInstance().query(sql);
+	}
+
+	static async getFId(bookid: number) {
+		const sql = `select id from \`jt_fiction\` where wid="${bookid}"`;
+		const result: any[] = await SqlClient.getInstance().query(sql);
+		let id = 0;
+		if (result.length > 0) {
+			id = result[0].id;
+		}
+		return id;
 	}
 }

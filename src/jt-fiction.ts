@@ -106,6 +106,8 @@ export default class JtFiction implements Jt {
 
 	channels: number; // 频道：男频，女频
 
+	wid: number; // 抓包到的小说id
+
 	constructor(bookinfo: any, volumelist: any[], bookpic: string) {
 		const time = new DateFormat(new Date()).format();
 
@@ -122,6 +124,7 @@ export default class JtFiction implements Jt {
 		this.updated_time = time;
 		this.channels = bookinfo.gender;
 		this.free_chapter_num = this.getFreeChapterNum(volumelist);
+		this.wid = bookinfo.bookid;
 	}
 
 	async getId() {
@@ -154,7 +157,8 @@ export default class JtFiction implements Jt {
 			"${this.state}",
 			"${this.created_time}",
 			"${this.updated_time}",
-			${this.channels})
+			${this.channels},
+			${this.wid})
 			ON DUPLICATE KEY UPDATE
 			type_id=${this.type_id},
 			cover_img="${this.cover_img}",
@@ -170,7 +174,8 @@ export default class JtFiction implements Jt {
 			chapter_price=${this.chapter_price},
 			state="${this.state}",
 			updated_time="${new DateFormat(new Date()).format()}",
-			channels=${this.channels}`;
+			channels=${this.channels},
+			wid=${this.wid}`;
 		logger.d(sql);
 		return SqlClient.getInstance().query(sql);
 	}
