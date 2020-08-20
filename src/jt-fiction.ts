@@ -117,7 +117,7 @@ export default class JtFiction implements Jt {
 		this.see_num = this.getSeeNum(volumelist);
 		this.name = bookinfo.bookname;
 		this.words_num = bookinfo.words;
-		this.introduction = bookinfo.intro;
+		this.introduction = bookinfo.intro.replace(/"/g, "'");
 		this.is_end = bookinfo.state;
 		this.state = bookinfo.state;
 		this.created_time = time;

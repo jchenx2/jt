@@ -48,7 +48,7 @@ export default class JtFictionChapter implements Jt {
 		const time = new DateFormat(new Date()).format();
 		this.fid = data.fid;
 		this.name = data.chaptername;
-		this.content = data.content;
+		this.content = data.content.replace(/"/g, "'");
 		this.sort = data.sort;
 		this.created_time = time;
 		this.updated_time = time;
