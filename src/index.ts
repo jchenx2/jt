@@ -60,11 +60,18 @@ app.use((err: any, req: any, res: any, next: any) => {
 	}
 })();
 
+let isStart: boolean = false;
+
 async function task() {
+	if (isStart) {
+		return;
+	}
+	isStart = true;
 	if (AppConfig.getInstance().debug) {
 		await JtFiction.clean();
 		await JtFictionChapter.clean();
 	}
 	await JtFiction.update();
 	await JtFictionChapter.update();
+	isStart = false;
 }
