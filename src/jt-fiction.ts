@@ -239,7 +239,7 @@ export default class JtFiction implements Jt {
 	}
 
 	static async getLocalAllBooks() {
-		const sql = `select id, name, wid from \`jt_fiction\``;
+		const sql = `select id, name,see_num, wid from \`jt_fiction\``;
 		const result: any[] = await SqlClient.getInstance().query(sql);
 		return result;
 	}

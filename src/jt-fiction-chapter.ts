@@ -87,6 +87,12 @@ export default class JtFictionChapter implements Jt {
 		return result.length > 0 ? result[0] : null;
 	}
 
+	static async getLocalChapters(wid: number) {
+		const sql = `select id from \`jt_fiction_chapter\` where wid=${wid}`;
+		const result: any[] = await SqlClient.getInstance().query(sql);
+		return result;
+	}
+
 	static async getRemoteChapter(
 		fid: number,
 		bookid: number,
@@ -143,7 +149,14 @@ export default class JtFictionChapter implements Jt {
 		logger.d(`update`);
 		const books = await JtFiction.getLocalAllBooks();
 		for (const b of books) {
-			const { id, name, wid } = b;
+			const { id, name, see_num, wid } = b;
+			const chapters = await this.getLocalChapters(wid);
+			if (see_num === chapters.length) {
+				logger.d(
+					`bookid=${wid}, bookname=${name} already sync completed`
+				);
+				continue;
+			}
 			try {
 				logger.d(`get chapters, bookid=${wid}, bookname=${name}`);
 				const response = await Axios.getInstance().getChapters(wid);
@@ -153,14 +166,16 @@ export default class JtFictionChapter implements Jt {
 					const { chapterlist } = v;
 					for (const c of chapterlist) {
 						sort++;
-						const { book_id, chapterid, chaptername } = c;
-						await this.getRemoteChapter(
-							id,
-							book_id,
-							chapterid,
-							chaptername,
-							sort
-						);
+						if (sort > chapters.length) {
+							const { book_id, chapterid, chaptername } = c;
+							await this.getRemoteChapter(
+								id,
+								book_id,
+								chapterid,
+								chaptername,
+								sort
+							);
+						}
 					}
 				}
 			} catch (e) {
