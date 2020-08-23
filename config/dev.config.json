@@ -7,14 +7,14 @@
 	},
 	"endpoint": {
 		"baseURL": "http://www.01kanshu.com/Interface/CommonApi",
-		"channel": "test"
+		"channel": "wkzhongtan"
 	},
 	"http": {
 		"host": "http://localhost",
 		"port": 3000
 	},
 	"schedule": {
-		"hour": 20,
-		"minute": 9
+		"hour": 14,
+		"minute": 12
 	}
 }
