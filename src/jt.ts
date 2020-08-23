@@ -1,5 +1,3 @@
 export default interface Jt {
-	insert(): Promise<void>;
-
-	getId(): Promise<number>;
+	insert(id: number): Promise<void>;
 }

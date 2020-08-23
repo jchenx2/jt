@@ -23,12 +23,13 @@ import Jt from "./jt";
 import Logger from "./logger";
 import Axios from "./axios";
 import DateFormat from "./date-format";
+import JtFiction from "./jt-fiction";
 
 const logger = new Logger("jt-fiction-chapters");
 
 export default class JtFictionChapter implements Jt {
 	// tslint:disable-next-line: variable-name
-	fid: number = 0; // 小说id
+	fid: number = 0; // 主表索引
 
 	name: string = ""; // 章节名字
 
@@ -44,29 +45,21 @@ export default class JtFictionChapter implements Jt {
 
 	wid: number; // 抓包到的小说id
 
+	cid: number; // 章节id
+
 	constructor(data: any) {
 		const time = new DateFormat(new Date()).format();
 		this.fid = data.fid;
 		this.name = data.chaptername;
-		this.content = data.content.replace(/"/g, "'");
+		this.content = data.content.replace(/"/g, "“");
 		this.sort = data.sort;
 		this.created_time = time;
 		this.updated_time = time;
 		this.wid = data.bookid;
+		this.cid = data.cid;
 	}
 
-	async getId() {
-		const sql = `select id from \`jt_fiction_chapter\` where wid=${this.wid} and name="${this.name}"`;
-		const result: any[] = await SqlClient.getInstance().query(sql);
-		let id = 0;
-		if (result.length > 0) {
-			id = result[0].id;
-		}
-		return id;
-	}
-
-	async insert() {
-		const id = await this.getId();
+	async insert(id: number) {
 		const sql = `INSERT INTO \`jt_fiction_chapter\` VALUES (
 			${id},
 			${this.fid},
@@ -75,24 +68,27 @@ export default class JtFictionChapter implements Jt {
             ${this.sort},
             "${this.created_time}",
 			"${this.updated_time}",
-			${this.wid})
+			${this.wid},
+			${this.cid})
 			ON DUPLICATE KEY UPDATE
             content="${this.content}",
             sort=${this.sort},
 			updated_time="${new DateFormat(new Date()).format()}",
-			wid=${this.wid}`;
+			wid=${this.wid},
+			cid=${this.cid}`;
 		return SqlClient.getInstance().query(sql);
 	}
 
 	static MAX_RETRY_COUNT = 3;
 
-	static async getLocalChapter(fid: number, name: string) {
-		const sql = `select * from \`jt_fiction_chapter\` where fid=${fid} and name="${name}"`;
+	static async getLocalChapter(wid: number, cid: number) {
+		const sql = `select id from \`jt_fiction_chapter\` where wid=${wid} and cid="${cid}"`;
 		const result: any[] = await SqlClient.getInstance().query(sql);
 		return result.length > 0 ? result[0] : null;
 	}
 
 	static async getRemoteChapter(
+		fid: number,
 		bookid: number,
 		chapterid: number,
 		chaptername: string,
@@ -102,38 +98,37 @@ export default class JtFictionChapter implements Jt {
 
 		const _update = async () => {
 			try {
-				const instance = await this.getLocalChapter(
-					bookid,
-					chaptername
-				);
-				logger.d(
-					`get chapter info, exits=${
-						instance != null
-					}, bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername}`
-				);
+				const instance = await this.getLocalChapter(bookid, chapterid);
+
 				if (instance == null) {
 					const r = await Axios.getInstance().getChapterInfo(
 						bookid,
 						chapterid
 					);
-					const fid = await JtFictionChapter.getFId(bookid);
+					logger.d(
+						`updte chapter, bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername}`
+					);
 					const chapter = new JtFictionChapter({
 						bookid,
 						chaptername,
 						content: r.data.result.content,
 						sort,
 						fid,
+						cid: chapterid,
 					});
-					await chapter.insert();
+					await chapter.insert(0);
+				} else {
+					logger.d(
+						` bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername} ---> 该章节已存在，信息不再更新！`
+					);
 				}
 			} catch (e) {
+				logger.e(
+					`updae chapter fail, bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername}, message=${e.message}`
+				);
 				retry++;
 				if (retry <= this.MAX_RETRY_COUNT) {
 					_update();
-				} else {
-					logger.e(
-						`get chapter info fail, bookid=${bookid}, chapterid=${chapterid}, chaptername=${chaptername}, message=${e.message}`
-					);
 				}
 			}
 		};
@@ -146,14 +141,12 @@ export default class JtFictionChapter implements Jt {
 
 	static async update() {
 		logger.d(`update`);
-		const books = await Axios.getInstance().getBooks();
+		const books = await JtFiction.getLocalAllBooks();
 		for (const b of books) {
-			const { bookid, bookname } = b;
+			const { id, name, wid } = b;
 			try {
-				logger.d(
-					`get chapters, bookid=${bookid}, bookname=${bookname}`
-				);
-				const response = await Axios.getInstance().getChapters(bookid);
+				logger.d(`get chapters, bookid=${wid}, bookname=${name}`);
+				const response = await Axios.getInstance().getChapters(wid);
 				const volumelist: any[] = response.data.result;
 				let sort = 0;
 				for (const v of volumelist) {
@@ -162,6 +155,7 @@ export default class JtFictionChapter implements Jt {
 						sort++;
 						const { book_id, chapterid, chaptername } = c;
 						await this.getRemoteChapter(
+							id,
 							book_id,
 							chapterid,
 							chaptername,
@@ -171,7 +165,7 @@ export default class JtFictionChapter implements Jt {
 				}
 			} catch (e) {
 				logger.e(
-					`get chapters fail, bookid=${bookid}, chaptername=${bookname}, message=${e.message}`
+					`get chapters fail, bookid=${wid}, chaptername=${name}, message=${e.message}`
 				);
 			}
 		}
@@ -181,15 +175,5 @@ export default class JtFictionChapter implements Jt {
 	static async clean() {
 		const sql = "truncate table jt_fiction_chapter";
 		return SqlClient.getInstance().query(sql);
-	}
-
-	static async getFId(bookid: number) {
-		const sql = `select id from \`jt_fiction\` where wid="${bookid}"`;
-		const result: any[] = await SqlClient.getInstance().query(sql);
-		let id = 0;
-		if (result.length > 0) {
-			id = result[0].id;
-		}
-		return id;
 	}
 }

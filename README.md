@@ -8,9 +8,15 @@
 6. npm install typescript -g
 
 ## RUN
+
 1. npm run dev
 2. npm run dev-sync-books
 3. npm run dev-sync-chapters
+
+## 使用 PM2 管理应用
+
+1. npm install pm2 -g
+2.
 
 ## TABLES DEFINE
 

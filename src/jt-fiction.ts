@@ -70,7 +70,7 @@ export default class JtFiction implements Jt {
 	author: string; // 作者
 
 	// tslint:disable-next-line: variable-name
-	see_num: number = 0; // 查看数量
+	see_num: number = 0; // 章节总数
 
 	score: number = 0.0; // 分数
 
@@ -124,21 +124,11 @@ export default class JtFiction implements Jt {
 		this.updated_time = time;
 		this.channels = bookinfo.gender;
 		this.free_chapter_num = this.getFreeChapterNum(volumelist);
+		this.chapter_price = bookinfo.ischarge === 1 ? 35 : 0;
 		this.wid = bookinfo.bookid;
 	}
 
-	async getId() {
-		const sql = `select id from \`jt_fiction\` where name="${this.name}"`;
-		const result: any[] = await SqlClient.getInstance().query(sql);
-		let id = 0;
-		if (result.length > 0) {
-			id = result[0].id;
-		}
-		return id;
-	}
-
-	async insert() {
-		const id = await this.getId();
+	async insert(id: number) {
 		const sql = `INSERT INTO \`jt_fiction\` VALUES (
 			${id},
 			${this.type_id},
@@ -176,7 +166,6 @@ export default class JtFiction implements Jt {
 			updated_time="${new DateFormat(new Date()).format()}",
 			channels=${this.channels},
 			wid=${this.wid}`;
-		logger.d(sql);
 		return SqlClient.getInstance().query(sql);
 	}
 
@@ -243,24 +232,30 @@ export default class JtFiction implements Jt {
 		return num;
 	}
 
-	static MAX_RETRY_COUNT = 3;
-
-	static async getLocalBook(name: string) {
-		const sql = `select * from \`jt_fiction\` where name="${name}"`;
+	static async getLocalBook(wid: number) {
+		const sql = `select id, state from \`jt_fiction\` where wid="${wid}"`;
 		const result: any[] = await SqlClient.getInstance().query(sql);
 		return result.length > 0 ? result[0] : null;
 	}
+
+	static async getLocalAllBooks() {
+		const sql = `select id, name, wid from \`jt_fiction\``;
+		const result: any[] = await SqlClient.getInstance().query(sql);
+		return result;
+	}
+
+	static MAX_RETRY_COUNT = 3;
 
 	static async getRemoteBook(bookid: number, bookname: string) {
 		let retry = 0;
 
 		const _update = async () => {
 			try {
-				logger.d(
-					`get book info,retry=${retry}, bookid=${bookid}, bookname=${bookname}`
-				);
-				const instance = await this.getLocalBook(bookname);
-				if (instance == null || instance.state === 0) {
+				const instance = await this.getLocalBook(bookid);
+				if (instance == null || instance.state === "0") {
+					logger.d(
+						`update book, retry=${retry}, bookid=${bookid}, bookname=${bookname}`
+					);
 					const [r1, r2] = await Promise.all([
 						Axios.getInstance().getBookInfo(bookid),
 						Axios.getInstance().getChapters(bookid),
@@ -275,16 +270,20 @@ export default class JtFiction implements Jt {
 						r2.data.result,
 						newbookpic
 					);
-					await book.insert();
+					const id = instance != null ? instance.id : 0;
+					await book.insert(id);
+				} else {
+					logger.d(
+						` bookid=${bookid}, bookname=${bookname} ---> 该书已完结,信息不再更新！`
+					);
 				}
 			} catch (e) {
+				logger.e(
+					`update fail, bookid=${bookid}, bookname=${bookname}, message=${e.message}`
+				);
 				retry++;
 				if (retry <= this.MAX_RETRY_COUNT) {
 					_update();
-				} else {
-					logger.e(
-						`get book info fail, bookid=${bookid}, bookname=${bookname}, message=${e.message}`
-					);
 				}
 			}
 		};
