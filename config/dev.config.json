@@ -7,7 +7,7 @@
 	},
 	"endpoint": {
 		"baseURL": "http://www.01kanshu.com/Interface/CommonApi",
-		"channel": "wkzhongtan"
+		"channel": "test"
 	},
 	"http": {
 		"host": "http://localhost",

@@ -7,7 +7,7 @@
 	},
 	"endpoint": {
 		"baseURL": "http://www.01kanshu.com/Interface/CommonApi",
-		"channel": "test"
+		"channel": "wkzhongtan"
 	},
 	"http": {
 		"host": "https://xiaoshuo.huapiaoliang.com/jt-master",

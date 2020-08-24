@@ -276,6 +276,7 @@ CREATE TABLE `jt_fiction`  (
   `updated_time` datetime(0) NULL DEFAULT NULL COMMENT '更新时间',
   `channels` int(11) NULL DEFAULT 0 COMMENT '频道：男频，女频',
   `wid` int(11) NULL DEFAULT NULL COMMENT '抓包到的小说id',
+  `admin_id` int(11) NULL DEFAULT NULL COMMENT '',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '小说信息表' ROW_FORMAT = Dynamic;
 

@@ -108,6 +108,9 @@ export default class JtFiction implements Jt {
 
 	wid: number; // 抓包到的小说id
 
+	// tslint:disable-next-line: variable-name
+	admin_id: number | null;
+
 	constructor(bookinfo: any, volumelist: any[], bookpic: string) {
 		const time = new DateFormat(new Date()).format();
 
@@ -126,6 +129,7 @@ export default class JtFiction implements Jt {
 		this.free_chapter_num = this.getFreeChapterNum(volumelist);
 		this.chapter_price = bookinfo.ischarge === 1 ? 35 : 0;
 		this.wid = bookinfo.bookid;
+		this.admin_id = null;
 	}
 
 	async insert(id: number) {
@@ -148,7 +152,8 @@ export default class JtFiction implements Jt {
 			"${this.created_time}",
 			"${this.updated_time}",
 			${this.channels},
-			${this.wid})
+			${this.wid},
+			${this.admin_id})
 			ON DUPLICATE KEY UPDATE
 			type_id=${this.type_id},
 			cover_img="${this.cover_img}",
