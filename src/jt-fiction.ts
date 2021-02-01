@@ -223,7 +223,9 @@ export default class JtFiction implements Jt {
 		let num = 0;
 		for (const volume of volumelist) {
 			const { chapterlist } = volume;
-			num += chapterlist.filter((b: any) => b.the_price === "0").length;
+			if(chapterlist){
+				num += chapterlist.filter((b: any) => b.the_price === "0").length;
+			}
 		}
 		return num;
 	}
@@ -232,7 +234,9 @@ export default class JtFiction implements Jt {
 		let num = 0;
 		for (const volume of volumelist) {
 			const chapterlist: any[] = volume.chapterlist;
-			num += chapterlist.length;
+			if(chapterlist){
+				num += chapterlist.length;
+			}
 		}
 		return num;
 	}
@@ -240,7 +244,10 @@ export default class JtFiction implements Jt {
 	static async getLocalBook(wid: number) {
 		const sql = `select id, state from \`jt_fiction\` where wid="${wid}"`;
 		const result: any[] = await SqlClient.getInstance().query(sql);
-		return result.length > 0 ? result[0] : null;
+		if(result){
+			return result.length > 0 ? result[0] : null;
+		}
+	    return null;
 	}
 
 	static async getLocalAllBooks() {
